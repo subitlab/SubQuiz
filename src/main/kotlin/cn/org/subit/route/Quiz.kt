@@ -4,6 +4,7 @@ package cn.org.subit.route.quiz
 
 import cn.org.subit.dataClass.*
 import cn.org.subit.dataClass.QuizId.Companion.toQuizIdOrNull
+import cn.org.subit.dataClass.SubjectId.Companion.toSubjectIdOrNull
 import cn.org.subit.database.Histories
 import cn.org.subit.database.Quizzes
 import cn.org.subit.database.Sections
@@ -43,7 +44,7 @@ fun Route.quiz() = route("/quiz", {
                 statuses<Quiz<Nothing?, Int?, Nothing?>>(HttpStatus.NotAcceptable.subStatus("已有未完成的测试"), HttpStatus.OK, example = Quiz.example.hideAnswer())
                 statuses(HttpStatus.Unauthorized, HttpStatus.BadRequest)
             }
-        }) { newQuiz() }
+        }, Context::newQuiz)
     }
 
     put<Map<SectionId, List<Int?>>>("/{id}/save", {
@@ -118,11 +119,12 @@ fun Route.quiz() = route("/quiz", {
 private suspend fun Context.newQuiz(): Nothing
 {
     val user = getLoginUser()?.id ?: finishCall(HttpStatus.Unauthorized)
+    val subject = call.parameters["subject"]?.toSubjectIdOrNull()
     val quizzes: Quizzes = get()
     val q = quizzes.getUnfinishQuiz(user)
     if (q != null) finishCall(HttpStatus.NotAcceptable.subStatus("已有未完成的测试"), q.hideAnswer())
     val count = call.parameters["count"]?.toIntOrNull() ?: finishCall(HttpStatus.BadRequest)
-    val sections = get<Sections>().recommendSections(user, count)
+    val sections = get<Sections>().recommendSections(user, subject, count)
     finishCall(HttpStatus.OK, quizzes.addQuiz(user, sections.list).hideAnswer())
 }
 

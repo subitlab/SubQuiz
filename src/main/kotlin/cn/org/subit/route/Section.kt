@@ -68,7 +68,6 @@ data class SectionInfo<out Answer: Int?, out UserAnswer: Int?, out Analysis: Str
 
 private fun Route.sectionType() = route("/type", {})
 {
-    post()
 }
 
 private suspend fun Context.newSection(section: SectionInfo<Int, Nothing?, String>): Nothing
@@ -84,9 +83,5 @@ private suspend fun Context.newSection(section: SectionInfo<Int, Nothing?, Strin
 
 private suspend fun Context.newSectionType(): Nothing
 {
-    val loginUser = getLoginUser() ?: finishCall(HttpStatus.Unauthorized)
-    if (loginUser.permission < Permission.ADMIN && get<Permissions>().getPermission(loginUser.id, section.subject) < Permission.ADMIN)
-        finishCall(HttpStatus.Forbidden)
-    val sectionTypes = get<SectionTypes>()
-    sectionTypes
+    TODO()
 }
